@@ -1,0 +1,19 @@
+# CMake build directories
+build/
+bin/
+lib/
+.cache/
+
+# VS Code specific files
+.vscode/
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Executables
+window
+*.exe
+*.out
