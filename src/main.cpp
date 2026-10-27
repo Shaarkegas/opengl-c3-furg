@@ -31,6 +31,38 @@ void multScale(float x, float y, float z); //funcao para escala
 void multPerspective(float fov, float aspect, float zNear, float zFar); //funcao para projecao perspectiva
 void multOrtho(float left, float right, float bottom, float top, float zNear, float zFar); //funcao para projecao ortogonal
 
+// rasterização usando dda
+void dda(int x1, int y1, int x2, int y2) {
+    int dx = x2 - x1;
+    int dy = y2 - y1;
+    int length;
+
+    if (abs(dx) >= abs(dy)) {
+        length = abs(dx);
+    } else {
+        length = abs(dy);
+    }
+
+    if (length == 0) {
+        glBegin(GL_POINTS);
+        glVertex2i(x1, y1);
+        glEnd();
+        return;
+    }
+
+    float xInc = (float)dx / length;
+    float yInc = (float)dy / length;
+    float x = x1, y = y1;
+
+    glBegin(GL_POINTS);
+    for (int i = 0; i <= length; i++) {
+        glVertex2i((int)floor(x + 0.5f), (int)floor(y + 0.5f));
+        x += xInc;
+        y += yInc;
+    }
+    glEnd();
+}
+
 // iluminação
 void configure_light(float px, float py, float pz,
                     float ar, float ag, float ab,     // ambiente
