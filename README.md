@@ -42,7 +42,7 @@ Ativado via `glEnable(GL_CULL_FACE)`, faltando documentação de teste e valida�
 
 ---
 
-## Como Compilar e Executar (Linux / Ubuntu)
+## Como Compilar e Executar (Linux / Ubuntu / Fedora)
 
 Certifique-se de possuir as dependências do OpenGL, GLUT e CMake instaladas em sua máquina.
 
@@ -54,6 +54,11 @@ sudo apt install build-essential cmake freeglut3-dev libgl1-mesa-dev libglu1-mes
 
 ```
 
+```bash
+sudo dnf update
+sudo dnf install gcc gcc-c++ make cmake freeglut-devel mesa-libGL-devel mesa-libGLU-devel
+
+```
 ### 2. Clonar o repositório e compilar via CMake
 
 ```bash
