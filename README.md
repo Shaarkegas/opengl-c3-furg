@@ -10,34 +10,35 @@ Repositório desenvolvido para o trabalho prático da disciplina de **Computaç�
 
 ---
 
-## Requisitos e Funcionalidades Implementadas
+## Modificações Recentes no Modelo 3D
 
-O projeto foi estruturado para contemplar integralmente os critérios de avaliação solicitados:
+Mesa de Dois Níveis: Modelagem inspirada nos laboratórios do C3, contendo um nível inferior (para teclado, mouse e gabinete) e um nível superior elevado (onde o monitor fica perfeitamente encaixado e recuado para o fundo).
+Periféricos e Hardware: Adicionados o gabinete desktop posicionado na horizontal, teclado centralizado e mouse ao lado direito, todos posicionados geometricamente com matrizes customizadas.
+Ajuste de Cores e Materiais: Correção dos materiais e fontes de luz para evitar brilhos estourados em branco, aplicando tons realistas de madeira, metal escuro e display azulado simulando o monitor ligado.
 
-1. **Modelagem Geométrica do Ambiente (25%):**
-* Reprodução de elementos que fazem referência ao C3/FURG (como uma mesa de laboratório em 3D no centro da cena composta por tampo e pernas estruturadas).
+---
 
+## Status dos Requisitos e Funcionalidades
+Modelagem Geométrica do Ambiente (25%): [IMPLEMENTADO]
+Reprodução de uma mesa de laboratório avançada de dois níveis com computador, monitor, teclado, mouse e gabinete no C3/FURG.
+Matrizes de Transformação Customizadas (`glMultMatrix`) (20%): [IMPLEMENTADO]
+Funções matemáticas próprias para Translação, Rotação ($X$ e $Y$) e Escala, aplicadas via `glMultMatrixf()`.
+Projeções Perspectiva e Ortogonal (15%): [IMPLEMENTADO]
+Desenvolvimento e aplicação de matrizes matemáticas de projeção customizadas com alternância.
+Iluminação e Tonalização (Phong / Gouraud) (15%): [PARCIALMENTE IMPLEMENTADO / EM REFINAMENTO]
+Luzes e tonalização suave via OpenGL ativadas, necessitando de ajustes finos de reflexão especular e componentes de Phong.
+Algoritmo de Rasterização — Bresenham / DDA (15%): [PENDENTE / TO DO]
+Necessário implementar e aplicar na cena para traçado algorítmico de linhas.
+Algoritmo de Visibilidade — Back-Face Culling (10%): [PARCIALMENTE IMPLEMENTADO]
+Ativado via `glEnable(GL_CULL_FACE)`, faltando documentação de teste e validação aprofundada no relatório.
 
-2. **Matrizes de Transformação Customizadas (`glMultMatrix`) (20%):**
-* Implementação matemática própria para funções de **Translação**, **Rotação** ($X$ e $Y$) e **Escala**, aplicadas através de matrizes homogêneas customizadas via `glMultMatrixf()`.
+---
 
-
-3. **Projeções Perspectiva e Ortogonal (15%):**
-* Desenvolvimento de funções matemáticas para as matrizes de projeção **Perspectiva** e **Ortogonal**, permitindo a alternância de visualização da cena.
-
-
-4. **Iluminação e Tonalização (Phong / Gouraud) (15%):**
-* Configuração de fontes de luz pontuais e materiais com reflexão difusa e ambiente, utilizando o modelo de tonalização suave (`glShadeModel(GL_SMOOTH)` / Gouraud Shading) nativo do OpenGL.
-
-
-5. **Algoritmo de Rasterização — Bresenham (15%):**
-* Implementação de algoritmo clássico de rasterização para traçado de linhas 2D/3D no ambiente.
-
-
-6. **Algoritmo de Visibilidade — Back-Face Culling (10%):**
-* Ativação e configuração do teste de visibilidade de faces traseiras (`glEnable(GL_CULL_FACE)`), otimizando a renderização e ocultando polígonos não visíveis.
-
-
+## TO DO / Pendências para Entrega
+[ ] Implementar Algoritmo de Iluminação. Refinar Iluminação e Materiais: Ajustar os componentes especulares do modelo de Phong e verificar o comportamento das normais nos cubos primitivos.
+[ ] Implementar Algoritmo de Rasterização: Desenvolver e aplicar uma rotina baseada no algoritmo de Bresenham ou DDA para rasterização de elementos gráficos no espaço virtual.
+[ ] Implementar e validar Algoritmo de Visibilidade: Concluir os testes formais do Back-Face Culling e do Z-buffer para garantir que a ocultação de polígonos esteja otimizada.
+[ ] Expandir o Ambiente: Adicionar um chão e cadeira, trazer mais elementos visuais característicos do C3.
 
 ---
 
