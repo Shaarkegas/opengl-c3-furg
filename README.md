@@ -12,9 +12,8 @@ Repositório desenvolvido para o trabalho prático da disciplina de **Computaç�
 
 ## Modificações Recentes no Modelo 3D
 
-Mesa de Dois Níveis: Modelagem inspirada nos laboratórios do C3, contendo um nível inferior (para teclado, mouse e gabinete) e um nível superior elevado (onde o monitor fica perfeitamente encaixado e recuado para o fundo).
-Periféricos e Hardware: Adicionados o gabinete desktop posicionado na horizontal, teclado centralizado e mouse ao lado direito, todos posicionados geometricamente com matrizes customizadas.
-Ajuste de Cores e Materiais: Correção dos materiais e fontes de luz para evitar brilhos estourados em branco, aplicando tons realistas de madeira, metal escuro e display azulado simulando o monitor ligado.
+Mesa de Dois Níveis: Modelagem inspirada nos laboratórios do C3, medidas agora estão mais de acordo com o laboratório
+Periféricos e Hardware: Adicionados mais gabinetes desktop posicionado na horizontal (4 kits), teclado centralizado e mouse ao lado direito, todos posicionados geometricamente com matrizes customizadas.
 
 ---
 

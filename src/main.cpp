@@ -12,26 +12,27 @@ struct light_config {
     float ambient[4];
     float diffuse[4];
     float specular[4];
-    float kc; // atenuação
+    float kc; // atenuação constante
     float kl; // linear
     float kq; // quadrática
 };
 
 light_config glight;
-int GSUBDIV = 8; // sub divisões por lado de cada face 
+int GSUBDIV = 8; // sub-divisões por lado de cada face
 
-//FUNÇÕES
+// FUNÇÕES
 void init();
 void display();
 void drawTwoLevelDesk();
-void multTranslation(float x, float y, float z); //funcao para translação
-void multRotationX(float angle); //funcao para rotacao x
-void multRotationY(float angle); //funcao rotacao y
-void multScale(float x, float y, float z); //funcao para escala
-void multPerspective(float fov, float aspect, float zNear, float zFar); //funcao para projecao perspectiva
-void multOrtho(float left, float right, float bottom, float top, float zNear, float zFar); //funcao para projecao ortogonal
+void drawComputerStation(float posX);
+void multTranslation(float x, float y, float z);
+void multRotationX(float angle);
+void multRotationY(float angle);
+void multScale(float x, float y, float z);
+void multPerspective(float fov, float aspect, float zNear, float zFar);
+void multOrtho(float left, float right, float bottom, float top, float zNear, float zFar);
 
-// rasterização usando dda
+// Rasterização usando DDA
 void dda(int x1, int y1, int x2, int y2) {
     int dx = x2 - x1;
     int dy = y2 - y1;
@@ -63,7 +64,7 @@ void dda(int x1, int y1, int x2, int y2) {
     glEnd();
 }
 
-// iluminação
+// Configuração da Iluminação
 void configure_light(float px, float py, float pz,
                     float ar, float ag, float ab,     // ambiente
                     float dr, float dg, float db,     // difusa
@@ -77,25 +78,15 @@ void configure_light(float px, float py, float pz,
     glight.kc = kc; glight.kl = kl; glight.kq = kq;
 }
 
-void on_of_light(bool value) {
-    if (value == true) {
-        glight.enable = true;
-    }
-
-    if (value == false) {
-        glight.enable = false;
-    }
-}
-
 void global_ambient(float r, float g, float b) {
     GLfloat amb[] = { r, g, b, 1.0f };
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, amb);
 }
 
 void starter_light() {
-    glEnable(GL_NORMALIZE);                 // corrige normais após multScale (ESSENCIAL)
+    glEnable(GL_NORMALIZE);                 // corrige normais após multScale
     glShadeModel(GL_SMOOTH);                // tonalização de Gouraud
-    glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE); // especular mais correto
+    glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE); // especular mais preciso
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
 }
@@ -112,8 +103,6 @@ void apply_ligth() {
     glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, glight.kq);
 }
 
-
-
 // Variáveis globais de controle de câmera/rotação
 float angleX = 20.0f;
 float angleY = -30.0f;
@@ -123,7 +112,7 @@ int main(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(800, 600);
-    glutCreateWindow("Ambiente Virtual - C3 / FURG - Mesa de Dois Níveis");
+    glutCreateWindow("Ambiente Virtual - C3 / FURG - Bancada de 4 Estações");
 
     init();
 
@@ -144,17 +133,17 @@ void init() {
 
     starter_light();
 
-    configure_light(3.0f, 5.0f, 4.0f,
+    configure_light(4.0f, 6.0f, 5.0f,
                     0.3f, 0.3f, 0.3f,
                     0.8f, 0.8f, 0.8f,
                     1.0f, 1.0f, 1.0f,
-                    1.0f, 0.02f, 0.0f);
+                    1.0f, 0.01f, 0.0f);
 
     global_ambient(0.1f, 0.1f, 0.1f);
     GSUBDIV = 10;
 }
 
-// matrizes de transformacao
+// Matrizes de transformação com glMultMatrix
 void multTranslation(float x, float y, float z) {
     GLfloat mat[16] = {
         1.0f, 0.0f, 0.0f, 0.0f,
@@ -165,7 +154,6 @@ void multTranslation(float x, float y, float z) {
     glMultMatrixf(mat);
 }
 
-// multiplicacao de escala
 void multScale(float x, float y, float z) {
     GLfloat mat[16] = {
         x,    0.0f, 0.0f, 0.0f,
@@ -176,7 +164,6 @@ void multScale(float x, float y, float z) {
     glMultMatrixf(mat);
 }
 
-//funcao de rotacao x
 void multRotationX(float angle) {
     float rad = angle * M_PI / 180.0f;
     float c = cos(rad);
@@ -190,7 +177,6 @@ void multRotationX(float angle) {
     glMultMatrixf(mat);
 }
 
-//rotacao soq no eixo y
 void multRotationY(float angle) {
     float rad = angle * M_PI / 180.0f;
     float c = cos(rad);
@@ -204,7 +190,6 @@ void multRotationY(float angle) {
     glMultMatrixf(mat);
 }
 
-// funcao de projecao perspectiva
 void multPerspective(float fov, float aspect, float zNear, float zFar) {
     float f = 1.0f / tan((fov * M_PI / 180.0f) / 2.0f);
     GLfloat mat[16] = {
@@ -216,7 +201,6 @@ void multPerspective(float fov, float aspect, float zNear, float zFar) {
     glMultMatrixf(mat);
 }
 
-//funcao de projecao ortogonal
 void multOrtho(float left, float right, float bottom, float top, float zNear, float zFar) {
     GLfloat mat[16] = {
         2.0f / (right - left), 0.0f, 0.0f, 0.0f,
@@ -227,7 +211,7 @@ void multOrtho(float left, float right, float bottom, float top, float zNear, fl
     glMultMatrixf(mat);
 }
 
-// funcao para aplicar as cores e materiais aos objetos 
+// Aplicação de materiais
 void setMaterial(float r, float g, float b, float specular = 0.5f, float shininess = 32.0f) {
     GLfloat ambient[]  = { r * 0.3f, g * 0.3f, b * 0.3f, 1.0f };
     GLfloat diffuse[]  = { r, g, b, 1.0f };
@@ -238,6 +222,7 @@ void setMaterial(float r, float g, float b, float specular = 0.5f, float shinine
     glMaterialf (GL_FRONT, GL_SHININESS, shininess);
 }
 
+// Desenha cubo subdividido com normais (suporta iluminação Phong/Gouraud)
 void drawLitCube() {
     static const float F[6][9] = {
         { 1, 0, 0,   0, 1, 0,   0, 0, 1},   // +X
@@ -275,143 +260,143 @@ void drawLitCube() {
     glEnd();
 }
 
-//funcoes de draw
-void drawTwoLevelDesk() {
-    //tampo Inferior da Mesa
-    setMaterial(0.69f, 0.22f, 0.09f);
-    glPushMatrix();
-        multTranslation(0.0f, -0.2f, 0.0f); //posicao
-        multScale(3.0f, 0.15f, 2.0f); //escala
-        drawLitCube();
-    glPopMatrix();
-
-    // tampo superior
-    glPushMatrix();
-        multTranslation(0.0f, 0.25f, -0.4f); //posicao
-        multScale(3.0f, 0.15f, 1.2f); //escala
-        drawLitCube();
-    glPopMatrix();
-
-    // painel do fundo da mesa
-    glPushMatrix();
-        multTranslation(0.0f, 0.025f, -0.95f); //posicao
-        multScale(3.0f, 0.3f, 0.1f); //escala
-        drawLitCube();
-    glPopMatrix();
-
-    // pernas da mesa
-    setMaterial(0.35f, 0.35f, 0.38f);
-
-    float legHeight = 1.2f;
-    float legRadius = 0.1f;
-    float offsetX = 1.3f;
-    float offsetZ = 0.8f;
-    float posY = -0.9f;
-
-    // dianteira direita
-    glPushMatrix();
-        multTranslation(offsetX, posY, offsetZ);
-        multScale(legRadius, legHeight, legRadius);
-        drawLitCube();
-    glPopMatrix();
-
-    // dianteira esquerda
-    glPushMatrix();
-        multTranslation(-offsetX, posY, offsetZ);
-        multScale(legRadius, legHeight, legRadius);
-        drawLitCube();
-    glPopMatrix();
-
-    // traseira direita
-    glPushMatrix();
-        multTranslation(offsetX, posY, -offsetZ);
-        multScale(legRadius, legHeight, legRadius);
-        drawLitCube();
-    glPopMatrix();
-
-    // traseira esquerda
-    glPushMatrix();
-        multTranslation(-offsetX, posY, -offsetZ);
-        multScale(legRadius, legHeight, legRadius);
-        drawLitCube();
-    glPopMatrix();  
-
-    // gabinete deitado
+// Desenha uma estação de trabalho completa (Gabinete, Teclado, Mouse e Monitor)
+void drawComputerStation(float posX) {
+    // 1. Gabinete deitado (Nível inferior)
     setMaterial(0.2f, 0.2f, 0.22f);
     glPushMatrix();
-        multTranslation(0.0f, 0.05f, -0.1f); //posicao
-        multScale(1.0f, 0.30f, 0.9f); //escala
+        multTranslation(posX - 0.2f, 0.05f, -0.1f);
+        multScale(0.9f, 0.30f, 0.85f);
         drawLitCube();
     glPopMatrix();
 
-    // teclado
+    // 2. Teclado
     setMaterial(0.25f, 0.25f, 0.25f);
     glPushMatrix();
-        multTranslation(0.1f, -0.1f, 0.75f);
-        multScale(1.1f, 0.04f, 0.45f);
+        multTranslation(posX - 0.1f, -0.1f, 0.65f);
+        multScale(0.95f, 0.04f, 0.40f);
         drawLitCube();
     glPopMatrix();
 
-    // mouse
+    // 3. Mouse
     glPushMatrix();
-        multTranslation(0.9f, -0.1f, 0.3f);
-        multScale(0.2f, 0.04f, 0.3f);
+        multTranslation(posX + 0.55f, -0.1f, 0.65f);
+        multScale(0.18f, 0.04f, 0.28f);
         drawLitCube();
     glPopMatrix();
 
-    // base do monitor
+    // 4. Base do Monitor (Nível superior)
     setMaterial(0.15f, 0.15f, 0.15f);
     glPushMatrix();
-        multTranslation(0.1f, 0.35f, -0.7f); //posicao
-        multScale(0.5f, 0.04f, 0.35f); //escala
+        multTranslation(posX, 0.35f, -0.7f);
+        multScale(0.45f, 0.04f, 0.30f);
         drawLitCube();
     glPopMatrix();
 
-    //haste do monitor
+    // 5. Haste do Monitor
     glPushMatrix();
-        multTranslation(0.1f, 0.55f, -0.7f);
-        multScale(0.08f, 0.4f, 0.08f);
+        multTranslation(posX, 0.55f, -0.7f);
+        multScale(0.07f, 0.40f, 0.07f);
         drawLitCube();
     glPopMatrix();
 
-    //carcaca do monitor
+    // 6. Carcaça do Monitor
     glPushMatrix();
-        multTranslation(0.1f, 0.9f, -0.72f);
-        multScale(1.4f, 0.85f, 0.1f);
+        multTranslation(posX, 0.90f, -0.72f);
+        multScale(1.25f, 0.80f, 0.08f);
         drawLitCube();
     glPopMatrix();
 
-    //tela do monitor
+    // 7. Display/Tela do Monitor (Azulado)
     setMaterial(0.15f, 0.45f, 0.75f);
     glPushMatrix();
-        multTranslation(0.1f, 0.9f, -0.66f);
-        multScale(1.3f, 0.75f, 0.02f);
+        multTranslation(posX, 0.90f, -0.67f);
+        multScale(1.15f, 0.70f, 0.02f);
         drawLitCube();
     glPopMatrix();
 }
 
+// Desenha a bancada completa de 4 lugares com pés laterais em formato de painel
+void drawTwoLevelDesk() {
+    float deskWidth = 8.0f; // Bancada larga para 4 computadores
+
+    // 1. Tampo Inferior da Mesa (Madeira)
+    setMaterial(0.69f, 0.22f, 0.09f);
+    glPushMatrix();
+        multTranslation(0.0f, -0.2f, 0.0f);
+        multScale(deskWidth, 0.15f, 2.0f);
+        drawLitCube();
+    glPopMatrix();
+
+    // 2. Tampo Superior (Nível acima)
+    glPushMatrix();
+        multTranslation(0.0f, 0.25f, -0.4f);
+        multScale(deskWidth, 0.15f, 1.2f);
+        drawLitCube();
+    glPopMatrix();
+
+    // 3. Painel do Fundo (Fechamento Traseiro da Prateleira)
+    glPushMatrix();
+        multTranslation(0.0f, 0.025f, -0.95f);
+        multScale(deskWidth, 0.3f, 0.1f);
+        drawLitCube();
+    glPopMatrix();
+
+    // 4. PÉS LATERAIS EM PLACA (Pé Esquerdo e Pé Direito em formato de painel sólido)
+    setMaterial(0.35f, 0.35f, 0.38f);
+
+    float sidePanelWidth = 0.15f; // Espessura da placa lateral
+    float sidePanelHeight = 1.3f;  // Altura dos pés
+    float sidePanelDepth = 2.0f;   // Profundidade da bancada
+    float sidePanelY = -0.85f;
+    float posX_Left = -deskWidth / 2.0f + sidePanelWidth / 2.0f;
+    float posX_Right = deskWidth / 2.0f - sidePanelWidth / 2.0f;
+
+    // Pé Lateral Esquerdo (Placa Sólida)
+    glPushMatrix();
+        multTranslation(posX_Left, sidePanelY, 0.0f);
+        multScale(sidePanelWidth, sidePanelHeight, sidePanelDepth);
+        drawLitCube();
+    glPopMatrix();
+
+    // Pé Lateral Direito (Placa Sólida)
+    glPushMatrix();
+        multTranslation(posX_Right, sidePanelY, 0.0f);
+        multScale(sidePanelWidth, sidePanelHeight, sidePanelDepth);
+        drawLitCube();
+    glPopMatrix();
+
+    // 5. DESENHO DAS 4 ESTAÇÕES DE TRABALHO
+    // As posições em X são calculadas para distribuir os 4 computadores uniformemente
+    float stationsX[4] = { -2.7f, -0.9f, 0.9f, 2.7f };
+
+    for (int i = 0; i < 4; i++) {
+        drawComputerStation(stationsX[i]);
+    }
+}
 
 void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    //projecao
+    // Projeção
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     if (projectionMode) {
         multPerspective(45.0f, 800.0f / 600.0f, 0.1f, 100.0f);
     } else {
-        multOrtho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 100.0f);
+        multOrtho(-6.0f, 6.0f, -6.0f, 6.0f, 0.1f, 100.0f);
     }
     
-    //camera
+    // Câmera / Modelo
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
-    //posicionamento da camera
-    multTranslation(0.0f, 0.0f, -7.0f);
+    // Câmera um pouco mais afastada (Z = -10.5f) para enquadrar toda a bancada de 4 lugares
+    multTranslation(0.0f, 0.0f, -10.5f);
     multRotationX(angleX);
     multRotationY(angleY);
 
+    apply_ligth();
     apply_ligth();
 
     drawTwoLevelDesk();
