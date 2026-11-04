@@ -24,18 +24,18 @@ void init();
 void display();
 void drawTwoLevelDesk();
 void drawComputerStation(float posX);
-void multTranslation(float x, float y, float z);
-void multRotationX(float angle);
-void multRotationY(float angle);
-void multScale(float x, float y, float z);
-void multPerspective(float fov, float aspect, float zNear, float zFar);
-void multOrtho(float left, float right, float bottom, float top, float zNear, float zFar);
+void multTranslation(float x, float y, float z); // matriz de translação
+void multRotationX(float angle); // matriz de rotação eixo X
+void multRotationY(float angle); // matriz de rotação eixo Y
+void multScale(float x, float y, float z); // matriz de escala
+void multPerspective(float fov, float aspect, float zNear, float zFar); // matriz de perspectiva
+void multOrtho(float left, float right, float bottom, float top, float zNear, float zFar); // matriz ortogonal
 void multLookAt(float eyeX, float eyeY, float eyeZ,
                 float centerX, float centerY, float centerZ,
-                float upX, float upY, float upZ);
+                float upX, float upY, float upZ); // matriz de visualização (LookAt)
 void clampCamera();
-void keyboard(unsigned char key, int x, int y);
-void specialKeys(int key, int x, int y);
+void keyboard(unsigned char key, int x, int y); // controles de teclado (WASD)
+void specialKeys(int key, int x, int y); // controles pelas setas do teclado
 
 // rasterização usando DDA
 void dda(int x1, int y1, int x2, int y2) {
@@ -147,7 +147,7 @@ int main(int argc, char** argv) {
 }
 
 void init() {
-    glClearColor(0.15f, 0.15f, 0.22f, 1.0f); // Fundo limpo
+    glClearColor(0.15f, 0.15f, 0.22f, 1.0f); // fundo limpo
     glEnable(GL_DEPTH_TEST);               // Z-buffer ativado
     
     // Algoritmo de Visibilidade: Back-Face Culling
@@ -167,7 +167,7 @@ void init() {
     GSUBDIV = 10;
 }
 
-// Matrizes de transformação com glMultMatrix
+// matrizes de transformação
 void multTranslation(float x, float y, float z) {
     GLfloat mat[16] = {
         1.0f, 0.0f, 0.0f, 0.0f,
@@ -175,7 +175,7 @@ void multTranslation(float x, float y, float z) {
         0.0f, 0.0f, 1.0f, 0.0f,
         x,    y,    z,    1.0f
     };
-    glMultMatrixf(mat);
+    glMultMatrixf(mat); // multiplica a matriz atual pela matriz de translação
 }
 
 void multScale(float x, float y, float z) {
@@ -214,7 +214,7 @@ void multRotationY(float angle) {
     glMultMatrixf(mat);
 }
 
-void multPerspective(float fov, float aspect, float zNear, float zFar) {
+void multPerspective(float fov, float aspect, float zNear, float zFar) { // matriz de perspectiva
     float f = 1.0f / tan((fov * M_PI / 180.0f) / 2.0f);
     GLfloat mat[16] = {
         f / aspect, 0.0f,  0.0f,                          0.0f,
@@ -225,7 +225,7 @@ void multPerspective(float fov, float aspect, float zNear, float zFar) {
     glMultMatrixf(mat);
 }
 
-void multOrtho(float left, float right, float bottom, float top, float zNear, float zFar) {
+void multOrtho(float left, float right, float bottom, float top, float zNear, float zFar) { // matriz ortogonal
     GLfloat mat[16] = {
         2.0f / (right - left), 0.0f, 0.0f, 0.0f,
         0.0f, 2.0f / (top - bottom), 0.0f, 0.0f,
@@ -235,11 +235,11 @@ void multOrtho(float left, float right, float bottom, float top, float zNear, fl
     glMultMatrixf(mat);
 }
 
-// Matriz de visualização (LookAt) customizada usando glMultMatrixf
+// matriz de visualização (LookAt) usando glMultMatrixf
 void multLookAt(float eyeX, float eyeY, float eyeZ,
                 float centerX, float centerY, float centerZ,
                 float upX, float upY, float upZ) {
-    // Vetor direção (forward = normalize(center - eye))
+    // vetor direção (forward = normalize(center - eye))
     float fx = centerX - eyeX;
     float fy = centerY - eyeY;
     float fz = centerZ - eyeZ;
@@ -248,7 +248,7 @@ void multLookAt(float eyeX, float eyeY, float eyeZ,
         fx /= fLen; fy /= fLen; fz /= fLen;
     }
 
-    // Vetor lateral direito (s = normalize(f x up))
+    // vetor lateral direito (s = normalize(f x up))
     float sx = fy * upZ - fz * upY;
     float sy = fz * upX - fx * upZ;
     float sz = fx * upY - fy * upX;
@@ -257,12 +257,12 @@ void multLookAt(float eyeX, float eyeY, float eyeZ,
         sx /= sLen; sy /= sLen; sz /= sLen;
     }
 
-    // Vetor superior ortogonal (u = s x f)
+    // vetor superior ortogonal (u = s x f)
     float ux = sy * fz - sz * fy;
     float uy = sz * fx - sx * fz;
     float uz = sx * fy - sy * fx;
 
-    // Matriz LookAt em ordem column-major (padrão OpenGL)
+    // matriz LookAt em ordem column-major (padrão OpenGL)
     GLfloat mat[16] = {
         sx,  ux, -fx, 0.0f,
         sy,  uy, -fy, 0.0f,
@@ -275,7 +275,7 @@ void multLookAt(float eyeX, float eyeY, float eyeZ,
     glMultMatrixf(mat);
 }
 
-// Controles de teclado (WASD + Zoom + Projeção)
+// controles de teclado
 void keyboard(unsigned char key, int x, int y) {
     const float angleStep = 3.0f;
     const float zoomStep  = 0.5f;
@@ -328,7 +328,7 @@ void keyboard(unsigned char key, int x, int y) {
     glutPostRedisplay();
 }
 
-// Controles pelas setas do teclado
+// controles pelas setas
 void specialKeys(int key, int x, int y) {
     const float angleStep = 3.0f;
 
@@ -351,7 +351,7 @@ void specialKeys(int key, int x, int y) {
     glutPostRedisplay();
 }
 
-// Aplicação de materiais
+// aplicação de materiais
 void setMaterial(float r, float g, float b, float specular = 0.5f, float shininess = 32.0f) {
     GLfloat ambient[]  = { r * 0.3f, g * 0.3f, b * 0.3f, 1.0f };
     GLfloat diffuse[]  = { r, g, b, 1.0f };
@@ -362,7 +362,7 @@ void setMaterial(float r, float g, float b, float specular = 0.5f, float shinine
     glMaterialf (GL_FRONT, GL_SHININESS, shininess);
 }
 
-// Desenha cubo subdividido com normais (suporta iluminação Phong/Gouraud)
+// desenha cubo subdividido com normais (suporta iluminação Phong/Gouraud)
 void drawLitCube() {
     static const float F[6][9] = {
         { 1, 0, 0,   0, 1, 0,   0, 0, 1},   // +X
@@ -416,7 +416,7 @@ void draw_letter(const Seg* g, int n, int ox, int oy, int k) {
 }
 
 
-void draw_logo(float posX) {
+void draw_logo(float posX) { // desenha o logotipo
     glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT | GL_POINT_BIT);
     glDisable(GL_LIGHTING);                 
     glColor3f(1.0f, 1.0f, 1.0f);
@@ -441,9 +441,9 @@ void draw_logo(float posX) {
     glPopAttrib();                          // restaura luz, cor e tamanho do ponto
 }
 
-// Desenha uma estação de trabalho completa (Gabinete, Teclado, Mouse e Monitor)
+// desenha desktop
 void drawComputerStation(float posX) {
-    // 1. Gabinete deitado (Nível inferior)
+    // gabinete
     setMaterial(0.2f, 0.2f, 0.22f);
     glPushMatrix();
         multTranslation(posX - 0.2f, 0.05f, -0.1f);
@@ -451,7 +451,7 @@ void drawComputerStation(float posX) {
         drawLitCube();
     glPopMatrix();
 
-    // 2. Teclado
+    //teclado
     setMaterial(0.25f, 0.25f, 0.25f);
     glPushMatrix();
         multTranslation(posX - 0.1f, -0.1f, 0.65f);
@@ -459,14 +459,14 @@ void drawComputerStation(float posX) {
         drawLitCube();
     glPopMatrix();
 
-    // 3. Mouse
+    //mouse
     glPushMatrix();
         multTranslation(posX + 0.55f, -0.1f, 0.65f);
         multScale(0.18f, 0.04f, 0.28f);
         drawLitCube();
     glPopMatrix();
 
-    // 4. Base do Monitor (Nível superior)
+    //pe do monitor
     setMaterial(0.15f, 0.15f, 0.15f);
     glPushMatrix();
         multTranslation(posX, 0.35f, -0.7f);
@@ -474,21 +474,21 @@ void drawComputerStation(float posX) {
         drawLitCube();
     glPopMatrix();
 
-    // 5. Haste do Monitor
+    //haste monitor
     glPushMatrix();
         multTranslation(posX, 0.55f, -0.7f);
         multScale(0.07f, 0.40f, 0.07f);
         drawLitCube();
     glPopMatrix();
 
-    // 6. Carcaça do Monitor
+    //moldura monitor
     glPushMatrix();
         multTranslation(posX, 0.90f, -0.72f);
         multScale(1.25f, 0.80f, 0.08f);
         drawLitCube();
     glPopMatrix();
 
-    // 7. Display/Tela do Monitor (Azulado)
+    //tela
     setMaterial(0.15f, 0.45f, 0.75f);
     glPushMatrix();
         multTranslation(posX, 0.90f, -0.67f);
@@ -500,11 +500,11 @@ void drawComputerStation(float posX) {
     draw_logo(posX);
 }
 
-// Desenha a bancada completa de 4 lugares com pés laterais em formato de painel
+//bancada
 void drawTwoLevelDesk() {
-    float deskWidth = 8.0f; // Bancada larga para 4 computadores
+    float deskWidth = 8.0f; // largura
 
-    // 1. Tampo Inferior da Mesa (Madeira)
+    //tampo de baixo
     setMaterial(0.69f, 0.22f, 0.09f);
     glPushMatrix();
         multTranslation(0.0f, -0.2f, 0.0f);
@@ -512,45 +512,45 @@ void drawTwoLevelDesk() {
         drawLitCube();
     glPopMatrix();
 
-    // 2. Tampo Superior (Nível acima)
+    //tampo de cima
     glPushMatrix();
         multTranslation(0.0f, 0.25f, -0.4f);
         multScale(deskWidth, 0.15f, 1.2f);
         drawLitCube();
     glPopMatrix();
 
-    // 3. Painel do Fundo (Fechamento Traseiro da Prateleira)
+    //painel de fundo
     glPushMatrix();
         multTranslation(0.0f, 0.025f, -0.95f);
         multScale(deskWidth, 0.3f, 0.1f);
         drawLitCube();
     glPopMatrix();
 
-    // 4. PÉS LATERAIS EM PLACA (Pé Esquerdo e Pé Direito em formato de painel sólido)
+    //pes
     setMaterial(0.35f, 0.35f, 0.38f);
 
-    float sidePanelWidth = 0.15f; // Espessura da placa lateral
-    float sidePanelHeight = 1.3f;  // Altura dos pés
-    float sidePanelDepth = 2.0f;   // Profundidade da bancada
-    float sidePanelY = -0.85f;
+    float sidePanelWidth = 0.15f; // largura
+    float sidePanelHeight = 1.3f;  // alura
+    float sidePanelDepth = 2.0f;   // profundidade
+    float sidePanelY = -0.85f; // posição em Y (altura do pé)
     float posX_Left = -deskWidth / 2.0f + sidePanelWidth / 2.0f;
     float posX_Right = deskWidth / 2.0f - sidePanelWidth / 2.0f;
 
-    // Pé Lateral Esquerdo (Placa Sólida)
+    //pe esquerdo
     glPushMatrix();
         multTranslation(posX_Left, sidePanelY, 0.0f);
         multScale(sidePanelWidth, sidePanelHeight, sidePanelDepth);
         drawLitCube();
     glPopMatrix();
 
-    // Pé Lateral Direito (Placa Sólida)
+    //pe direito
     glPushMatrix();
         multTranslation(posX_Right, sidePanelY, 0.0f);
         multScale(sidePanelWidth, sidePanelHeight, sidePanelDepth);
         drawLitCube();
     glPopMatrix();
 
-    // As posições em X são calculadas para distribuir os 4 computadores uniformemente
+    //clona os 4 computadores
     float stationsX[4] = { -2.7f, -0.9f, 0.9f, 2.7f };
 
     for (int i = 0; i < 4; i++) {
