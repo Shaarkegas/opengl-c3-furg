@@ -20,7 +20,6 @@ struct light_config {
 light_config glight;
 int GSUBDIV = 8; // sub-divisões por lado de cada face
 
-// FUNÇÕES
 void init();
 void display();
 void drawTwoLevelDesk();
@@ -32,7 +31,7 @@ void multScale(float x, float y, float z);
 void multPerspective(float fov, float aspect, float zNear, float zFar);
 void multOrtho(float left, float right, float bottom, float top, float zNear, float zFar);
 
-// Rasterização usando DDA
+// rasterização usando DDA
 void dda(int x1, int y1, int x2, int y2) {
     int dx = x2 - x1;
     int dy = y2 - y1;
@@ -64,7 +63,7 @@ void dda(int x1, int y1, int x2, int y2) {
     glEnd();
 }
 
-// Configuração da Iluminação
+// configuração da Iluminação
 void configure_light(float px, float py, float pz,
                     float ar, float ag, float ab,     // ambiente
                     float dr, float dg, float db,     // difusa
@@ -85,7 +84,7 @@ void global_ambient(float r, float g, float b) {
 
 void starter_light() {
     glEnable(GL_NORMALIZE);                 // corrige normais após multScale
-    glShadeModel(GL_SMOOTH);                // tonalização de Gouraud
+    glShadeModel(GL_SMOOTH);                // tonalização de gouraud
     glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE); // especular mais preciso
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
@@ -260,6 +259,47 @@ void drawLitCube() {
     glEnd();
 }
 
+
+struct Seg { int x1, y1, x2, y2; };
+
+static const Seg GLYPH_C[] = { {4,5,3,6}, {3,6,1,6}, {1,6,0,5}, {0,5,0,1}, {0,1,1,0}, {1,0,3,0}, {3,0,4,1} };
+static const Seg GLYPH_3[] = { {0,6,3,6}, {3,6,4,5}, {4,5,4,4}, {4,4,3,3}, {1,3,3,3}, {3,3,4,2}, {4,2,4,1}, {4,1,3,0}, {3,0,0,0} };
+
+#define COUNT(a) ((int)(sizeof(a) / sizeof((a)[0])))
+
+
+void draw_letter(const Seg* g, int n, int ox, int oy, int k) {
+    for (int i = 0; i < n; i++)
+        dda(ox + g[i].x1 * k, oy + g[i].y1 * k,
+            ox + g[i].x2 * k, oy + g[i].y2 * k);          
+}
+
+
+void draw_logo(float posX) {
+    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT | GL_POINT_BIT);
+    glDisable(GL_LIGHTING);                 
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glPointSize(3.0f);
+
+    glPushMatrix();
+        multTranslation(posX, 0.90f, -0.655f);   
+        multScale(0.01f, 0.01f, 1.0f);           
+
+        // moldura
+        dda(-52, -31,  52, -31);
+        dda( 52, -31,  52,  31);
+        dda( 52,  31, -52,  31);
+        dda(-52,  31, -52, -31);
+
+        
+        const int k = 8;
+        draw_letter(GLYPH_C, COUNT(GLYPH_C), -38,      -24, k);
+        draw_letter(GLYPH_3, COUNT(GLYPH_3), -38 + 44, -24, k);
+    glPopMatrix();
+
+    glPopAttrib();                          // restaura luz, cor e tamanho do ponto
+}
+
 // Desenha uma estação de trabalho completa (Gabinete, Teclado, Mouse e Monitor)
 void drawComputerStation(float posX) {
     // 1. Gabinete deitado (Nível inferior)
@@ -314,6 +354,9 @@ void drawComputerStation(float posX) {
         multScale(1.15f, 0.70f, 0.02f);
         drawLitCube();
     glPopMatrix();
+
+    // rasterização nos monitores
+    draw_logo(posX);
 }
 
 // Desenha a bancada completa de 4 lugares com pés laterais em formato de painel
@@ -366,7 +409,6 @@ void drawTwoLevelDesk() {
         drawLitCube();
     glPopMatrix();
 
-    // 5. DESENHO DAS 4 ESTAÇÕES DE TRABALHO
     // As posições em X são calculadas para distribuir os 4 computadores uniformemente
     float stationsX[4] = { -2.7f, -0.9f, 0.9f, 2.7f };
 
@@ -378,7 +420,7 @@ void drawTwoLevelDesk() {
 void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    // Projeção
+    // projeção
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     if (projectionMode) {
@@ -387,11 +429,11 @@ void display() {
         multOrtho(-6.0f, 6.0f, -6.0f, 6.0f, 0.1f, 100.0f);
     }
     
-    // Câmera / Modelo
+    // câmera / Modelo
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
-    // Câmera um pouco mais afastada (Z = -10.5f) para enquadrar toda a bancada de 4 lugares
+    // câmera um pouco mais afastada (Z = -10.5f) para enquadrar toda a bancada de 4 lugares
     multTranslation(0.0f, 0.0f, -10.5f);
     multRotationX(angleX);
     multRotationY(angleY);
