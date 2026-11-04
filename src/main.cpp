@@ -31,6 +31,12 @@ void multRotationY(float angle);
 void multScale(float x, float y, float z);
 void multPerspective(float fov, float aspect, float zNear, float zFar);
 void multOrtho(float left, float right, float bottom, float top, float zNear, float zFar);
+void multLookAt(float eyeX, float eyeY, float eyeZ,
+                float centerX, float centerY, float centerZ,
+                float upX, float upY, float upZ);
+void clampCamera();
+void keyboard(unsigned char key, int x, int y);
+void specialKeys(int key, int x, int y);
 
 // Rasterização usando DDA
 void dda(int x1, int y1, int x2, int y2) {
@@ -103,10 +109,27 @@ void apply_ligth() {
     glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, glight.kq);
 }
 
-// Variáveis globais de controle de câmera/rotação
-float angleX = 20.0f;
-float angleY = -30.0f;
+// Variáveis globais de controle de câmera orbital (com limites para não ver a parte de trás)
+float camYaw = 25.0f;       // Ângulo horizontal (em graus): limitado entre -75° e +75° (frente da bancada)
+float camPitch = 20.0f;     // Ângulo vertical (em graus): limitado entre -5° e +75°
+float camRadius = 10.5f;    // Distância da câmera (zoom): limitado entre 4.0 e 18.0
 bool projectionMode = true; // true = Perspectiva, false = Ortogonal
+
+const float MIN_YAW    = -75.0f;
+const float MAX_YAW    =  75.0f;
+const float MIN_PITCH  =  -5.0f;
+const float MAX_PITCH  =  75.0f;
+const float MIN_RADIUS =   4.0f;
+const float MAX_RADIUS =  18.0f;
+
+void clampCamera() {
+    if (camYaw < MIN_YAW)       camYaw = MIN_YAW;
+    if (camYaw > MAX_YAW)       camYaw = MAX_YAW;
+    if (camPitch < MIN_PITCH)   camPitch = MIN_PITCH;
+    if (camPitch > MAX_PITCH)   camPitch = MAX_PITCH;
+    if (camRadius < MIN_RADIUS) camRadius = MIN_RADIUS;
+    if (camRadius > MAX_RADIUS) camRadius = MAX_RADIUS;
+}
 
 int main(int argc, char** argv) {
     glutInit(&argc, argv);
@@ -117,6 +140,8 @@ int main(int argc, char** argv) {
     init();
 
     glutDisplayFunc(display);
+    glutKeyboardFunc(keyboard);
+    glutSpecialFunc(specialKeys);
 
     glutMainLoop();
     return 0;
@@ -209,6 +234,122 @@ void multOrtho(float left, float right, float bottom, float top, float zNear, fl
         -(right + left) / (right - left), -(top + bottom) / (top - bottom), -(zFar + zNear) / (zFar - zNear), 1.0f
     };
     glMultMatrixf(mat);
+}
+
+// Matriz de visualização (LookAt) customizada usando glMultMatrixf
+void multLookAt(float eyeX, float eyeY, float eyeZ,
+                float centerX, float centerY, float centerZ,
+                float upX, float upY, float upZ) {
+    // Vetor direção (forward = normalize(center - eye))
+    float fx = centerX - eyeX;
+    float fy = centerY - eyeY;
+    float fz = centerZ - eyeZ;
+    float fLen = sqrt(fx * fx + fy * fy + fz * fz);
+    if (fLen > 0.0001f) {
+        fx /= fLen; fy /= fLen; fz /= fLen;
+    }
+
+    // Vetor lateral direito (s = normalize(f x up))
+    float sx = fy * upZ - fz * upY;
+    float sy = fz * upX - fx * upZ;
+    float sz = fx * upY - fy * upX;
+    float sLen = sqrt(sx * sx + sy * sy + sz * sz);
+    if (sLen > 0.0001f) {
+        sx /= sLen; sy /= sLen; sz /= sLen;
+    }
+
+    // Vetor superior ortogonal (u = s x f)
+    float ux = sy * fz - sz * fy;
+    float uy = sz * fx - sx * fz;
+    float uz = sx * fy - sy * fx;
+
+    // Matriz LookAt em ordem column-major (padrão OpenGL)
+    GLfloat mat[16] = {
+        sx,  ux, -fx, 0.0f,
+        sy,  uy, -fy, 0.0f,
+        sz,  uz, -fz, 0.0f,
+        -(sx * eyeX + sy * eyeY + sz * eyeZ),
+        -(ux * eyeX + uy * eyeY + uz * eyeZ),
+         (fx * eyeX + fy * eyeY + fz * eyeZ),
+        1.0f
+    };
+    glMultMatrixf(mat);
+}
+
+// Controles de teclado (WASD + Zoom + Projeção)
+void keyboard(unsigned char key, int x, int y) {
+    const float angleStep = 3.0f;
+    const float zoomStep  = 0.5f;
+
+    switch (key) {
+        case 'a':
+        case 'A':
+            camYaw -= angleStep;
+            break;
+        case 'd':
+        case 'D':
+            camYaw += angleStep;
+            break;
+        case 'w':
+        case 'W':
+            camPitch += angleStep;
+            break;
+        case 's':
+        case 'S':
+            camPitch -= angleStep;
+            break;
+        case '+':
+        case '=':
+        case 'q':
+        case 'Q':
+            camRadius -= zoomStep;
+            break;
+        case '-':
+        case '_':
+        case 'e':
+        case 'E':
+            camRadius += zoomStep;
+            break;
+        case 'p':
+        case 'P':
+            projectionMode = !projectionMode;
+            break;
+        case 'r':
+        case 'R':
+            camYaw = 25.0f;
+            camPitch = 20.0f;
+            camRadius = 10.5f;
+            break;
+        case 27: // ESC
+            exit(0);
+            break;
+    }
+
+    clampCamera();
+    glutPostRedisplay();
+}
+
+// Controles pelas setas do teclado
+void specialKeys(int key, int x, int y) {
+    const float angleStep = 3.0f;
+
+    switch (key) {
+        case GLUT_KEY_LEFT:
+            camYaw -= angleStep;
+            break;
+        case GLUT_KEY_RIGHT:
+            camYaw += angleStep;
+            break;
+        case GLUT_KEY_UP:
+            camPitch += angleStep;
+            break;
+        case GLUT_KEY_DOWN:
+            camPitch -= angleStep;
+            break;
+    }
+
+    clampCamera();
+    glutPostRedisplay();
 }
 
 // Aplicação de materiais
@@ -381,22 +522,34 @@ void display() {
     // Projeção
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
+    float aspect = 800.0f / 600.0f;
     if (projectionMode) {
-        multPerspective(45.0f, 800.0f / 600.0f, 0.1f, 100.0f);
+        multPerspective(45.0f, aspect, 0.1f, 100.0f);
     } else {
-        multOrtho(-6.0f, 6.0f, -6.0f, 6.0f, 0.1f, 100.0f);
+        float orthoSize = camRadius * 0.55f;
+        multOrtho(-orthoSize * aspect, orthoSize * aspect, -orthoSize, orthoSize, 0.1f, 100.0f);
     }
     
     // Câmera / Modelo
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
-    // Câmera um pouco mais afastada (Z = -10.5f) para enquadrar toda a bancada de 4 lugares
-    multTranslation(0.0f, 0.0f, -10.5f);
-    multRotationX(angleX);
-    multRotationY(angleY);
+    // Cálculo da posição da câmera em coordenadas esféricas (sempre à frente da bancada, Z > 0)
+    float yawRad   = camYaw   * M_PI / 180.0f;
+    float pitchRad = camPitch * M_PI / 180.0f;
 
-    apply_ligth();
+    float targetX = 0.0f;
+    float targetY = 0.2f;
+    float targetZ = 0.0f;
+
+    float eyeX = targetX + camRadius * cos(pitchRad) * sin(yawRad);
+    float eyeY = targetY + camRadius * sin(pitchRad);
+    float eyeZ = targetZ + camRadius * cos(pitchRad) * cos(yawRad);
+
+    multLookAt(eyeX, eyeY, eyeZ,
+               targetX, targetY, targetZ,
+               0.0f, 1.0f, 0.0f);
+
     apply_ligth();
 
     drawTwoLevelDesk();
